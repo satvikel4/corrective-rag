@@ -31,7 +31,7 @@ def run_evaluation():
     
     dataset_name = "Corrective RAG Agent Testing"
     model_tested = "llama3.1"
-    metadata = "CRAG, llama3.1"
+    metadata = "llama3.1"
     experiment_prefix = f"custom-agent-{model_tested}"
     experiment_results = evaluate(
         predict_custom_agent_answer,
