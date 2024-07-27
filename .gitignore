@@ -1,8 +1,8 @@
 # Ignore .env file
 .env
 
-#Ignore .config file
-.config
+#Ignore config.py file
+config.py
 
 # Ignore __pycache__ directories
 __pycache__/
