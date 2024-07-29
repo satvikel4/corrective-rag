@@ -2,6 +2,7 @@ from langsmith import Client
 from langchain import hub
 from langchain_openai import ChatOpenAI
 
+# Predict an answer using the custom agent workflow
 def predict_custom_agent_answer(example: dict, workflow):
     import uuid
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}
@@ -10,6 +11,7 @@ def predict_custom_agent_answer(example: dict, workflow):
     )
     return {"response": state_dict["generation"], "steps": state_dict["steps"]}
 
+# Create a dataset for testing the Corrective RAG Agent
 def create_dataset():
     client = Client()
     examples = [
@@ -26,6 +28,7 @@ def create_dataset():
         inputs, outputs = zip(*[({"input": text}, {"output": label}) for text, label in examples])
         client.create_examples(inputs=inputs, outputs=outputs, dataset_id=dataset.id)
 
+# Run an evaluation of the custom agent using the created dataset
 def run_evaluation():
     from langsmith.evaluation import evaluate
     
@@ -43,6 +46,7 @@ def run_evaluation():
         metadata={"version": metadata},
     )
 
+# Evaluate the accuracy of the generated answer compared to the reference answer
 def answer_evaluator(run, example):
     grade_prompt_answer_accuracy = hub.pull("langchain-ai/rag-answer-vs-reference")
     input_question = example.inputs["input"]
@@ -57,6 +61,7 @@ def answer_evaluator(run, example):
     })
     return {"key": "answer_v_reference_score", "score": score["Score"]}
 
+# Check if the steps taken by the agent match the expected trajectories
 def check_trajectory_custom(root_run, example):
     expected_trajectory_1 = ["retrieve_documents", "grade_document_retrieval", "web_search", "generate_answer"]
     expected_trajectory_2 = ["retrieve_documents", "grade_document_retrieval", "generate_answer"]

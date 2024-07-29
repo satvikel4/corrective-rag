@@ -3,6 +3,7 @@ from langgraph.graph import START, END, StateGraph
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.schema import Document
 
+# Define the structure of the graph state
 class GraphState(TypedDict):
     question: str
     generation: str
@@ -10,7 +11,9 @@ class GraphState(TypedDict):
     documents: List[str]
     steps: List[str]
 
+# Create the workflow for the RAG system
 def create_workflow(retriever, rag_chain, retrieval_grader):
+    # Function to retrieve documents based on the question
     def retrieve(state):
         question = state["question"]
         documents = retriever.invoke(question)
@@ -18,6 +21,7 @@ def create_workflow(retriever, rag_chain, retrieval_grader):
         steps.append("retrieve_documents")
         return {"documents": documents, "question": question, "steps": steps}
 
+    # Function to generate an answer based on the documents and question
     def generate(state):
         question = state["question"]
         documents = state["documents"]
@@ -31,6 +35,7 @@ def create_workflow(retriever, rag_chain, retrieval_grader):
             "steps": steps,
         }
 
+    # Function to grade the relevance of retrieved documents
     def grade_documents(state):
         question = state["question"]
         documents = state["documents"]
@@ -55,6 +60,7 @@ def create_workflow(retriever, rag_chain, retrieval_grader):
             "steps": steps,
         }
 
+    # Function to perform a web search if needed
     def web_search(state):
         question = state["question"]
         documents = state.get("documents", [])
@@ -70,17 +76,21 @@ def create_workflow(retriever, rag_chain, retrieval_grader):
         )
         return {"documents": documents, "question": question, "steps": steps}
 
+    # Function to decide whether to generate an answer or perform a web search
     def decide_to_generate(state):
         search = state["search"]
         return "search" if search == "Yes" else "generate"
 
+    # Create the state graph
     workflow = StateGraph(GraphState)
 
+    # Add nodes to the graph
     workflow.add_node("retrieve", retrieve)
     workflow.add_node("grade_documents", grade_documents)
     workflow.add_node("generate", generate)
     workflow.add_node("web_search", web_search)
 
+    # Set up the graph structure
     workflow.set_entry_point("retrieve")
     workflow.add_edge("retrieve", "grade_documents")
     workflow.add_conditional_edges(
@@ -94,4 +104,5 @@ def create_workflow(retriever, rag_chain, retrieval_grader):
     workflow.add_edge("web_search", "generate")
     workflow.add_edge("generate", END)
 
+    # Compile and return the workflow
     return workflow.compile()
